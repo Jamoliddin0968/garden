@@ -56,7 +56,13 @@ class LimitViewSet(viewsets.ModelViewSet):
     serializer_class = LimitCreateSerializer
     queryset = Limit.objects.all()
 
-
+    def create(self, request, *args, **kwargs):
+        serializer = LimitCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        limit=serializer.save()
+        serializer = LimitSerializer(limit)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class ExpenseViewSet(viewsets.ModelViewSet):

@@ -78,7 +78,6 @@ class Monthly(models.Model):
         Yangi oylik davr
         HUJJAT modeli
     """
-    # garden = models.ForeignKey(Garden, on_delete=models.CASCADE)
     month = models.CharField(max_length=10, choices=MONTH_NAMES)
     year = models.CharField(max_length=4)
     is_active = models.BooleanField(default=True,help_text="Agar bu oylik hisobot tugatilsa bu atribut false bo'ladi")

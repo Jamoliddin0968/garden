@@ -77,6 +77,7 @@ class LimitCreateSerializer(serializers.Serializer):
     class ItemSerializer(serializers.Serializer):
         product_id = serializers.IntegerField()
         limit_quantity = serializers.FloatField(default=0)
+        remaining_quantity=serializers.FloatField(read_only=True)
         price = serializers.IntegerField()
         market_price = serializers.IntegerField()
     monthly_id = serializers.IntegerField()  
@@ -84,15 +85,27 @@ class LimitCreateSerializer(serializers.Serializer):
     items = ItemSerializer(many=True)
     def create(self, validated_data):
         items = validated_data.pop('items',[])
-        limit = Limit.objects.create(garden_id=garden_id,monthly_id=monthly_id)
+        limit = Limit.objects.create(garden_id=validated_data.get('garden_id'),monthly_id=validated_data.get('monthly_id'))
         objects=[]
         for item in items:
-            obj = LimitItem(limit_id=limit.id,**validated_data)
+            obj = LimitItem(limit_id=limit.id,**item)
+            obj.remaining_quantity=obj.limit_quantity
             objects.append(obj)
         LimitItem.objects.bulk_create(objects)
             
         return limit
     
+class LimitSerializer(ModelSerializer):
+    class ItemSerializer(ModelSerializer):
+        class Meta:
+            exclude=("id",)
+            model=LimitItem
+    monthly = MonthlySerializer()
+    garden = GardenSerializer()
+    items = ItemSerializer(many=True,source='limititem_set')
+    class Meta:
+        exclude=('id',)
+        model=Limit
 # end 
 
 
