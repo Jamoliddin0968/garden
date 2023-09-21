@@ -54,22 +54,23 @@ class Order(models.Model):
         HUJJAT modeli
     """
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE)
-    date = models.DateField()
+    date = models.DateField(auto_now_add=True)
 
     def __str__(self) -> str:
         return f"{self.garden} {self.date}"
+    
 
 
 class OrderItem(models.Model):
     """
         Buyurtma hujjati tarkibi
     """
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE,related_name="items")
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.FloatField()
 
     def __str__(self) -> str:
-        return self.order
+        return f"{self.order} {self.product}"
 
 
 class Monthly(models.Model):
@@ -85,20 +86,23 @@ class Monthly(models.Model):
     def __str__(self) -> str:
         return self.year+' '+self.month
 
-
-class MonthlyItem(models.Model):
+class Limit(models.Model):
+    monthly=models.ForeignKey(Monthly, on_delete=models.CASCADE)
+    garden = models.ForeignKey(Garden, on_delete=models.CASCADE)
+class LimitItem(models.Model):
     """
         Yangi oylik davr
         HUJJAT modeli tarkibi
     """
-    monthly = models.ForeignKey(Monthly, on_delete=models.CASCADE)
+    limit = models.ForeignKey(Limit, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.FloatField()
+    limit_quantity = models.FloatField(default=0)
+    remaining_quantity = models.FloatField(default=0)
     price = models.IntegerField()
     market_price = models.IntegerField()
 
     def __str__(self) -> str:
-        return self.monthly
+        return self.product
 
 
 class Expense(models.Model):
