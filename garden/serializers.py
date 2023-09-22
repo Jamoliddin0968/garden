@@ -1,130 +1,241 @@
 # Garden,Product,Sell,SellItem,Order,OrderItem,Monthly,MonthlyItem,Expense,ExpenseItem,Storage
 from datetime import datetime
-from rest_framework.serializers import ModelSerializer
-from rest_framework import serializers
-from .models import *
+
 from django.db.models import Q
+from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+from rest_framework.serializers import ModelSerializer
+
+from .models import *
+
+
+def get_current_monthly() -> Monthly:
+    obj = Monthly.objects.filter(is_active=True).first()
+    if not obj:
+        raise ValidationError("Aktiv oylik obyekt mavjud emas")
+    return obj
+
+# oylik
+
+
+class MonthlySerializer(ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = Monthly
+
+
+class ProductGardenParametr(serializers.Serializer):
+    monthly_id = serializers.IntegerField()
+    garden_id = serializers.IntegerField()
+
+
 class GardenSerializer(ModelSerializer):
     class Meta:
-        fields="__all__"
-        model=Garden
-        
+        fields = "__all__"
+        model = Garden
+
+
 class ProductSerializer(ModelSerializer):
     class Meta:
-        fields="__all__"
-        model=Product
+        fields = "__all__"
+        model = Product
+
+
+class SellCreateSerializer(serializers.Serializer):
+    class _SellCreateItemSerializer(serializers.Serializer):
+        product_id = serializers.IntegerField()
+        quantity = serializers.FloatField()
+        # price = serializers.IntegerField()
+
+    garden_id = serializers.IntegerField()
+    monthly_id = serializers.IntegerField(read_only=True)
+    items = _SellCreateItemSerializer(many=True)
+
+    def create(self, validated_data):
+        monthly_id = get_current_monthly().id
+        garden_id = validated_data.get('garden_id')
+        items = validated_data.pop('items')
+        sell_object = Sell.objects.create(
+            monthly_id=monthly_id, garden_id=garden_id)
+        objects = []
+        for item in items:
+            product_id = item.get('product_id')
+            quantity = item.get('quantity')
+            price = 0
+            temp = LimitItem.objects.filter(
+                Q(limit__monthly__id=monthly_id) & Q(product_id=product_id)).first()
+            if temp:
+                price = temp.price
+            obj = SellItem(
+                sell=sell_object, price=price, product_id=product_id, quantity=quantity)
+            objects.append(obj)
+        SellItem.objects.bulk_create(objects)
+        return sell_object
 
 
 class SellSerializer(ModelSerializer):
+    class _SellItemSerializer(ModelSerializer):
+        product = ProductSerializer()
+        quantity = serializers.FloatField()
+        price = serializers.IntegerField()
+
+        class Meta:
+            fields = "__all__"
+            model = SellItem
+
+    garden = GardenSerializer()
+    monthly = MonthlySerializer()
+    items = _SellItemSerializer(many=True, source='sellitem_set')
+
     class Meta:
-        fields="__all__"
-        model=Sell
+        fields = "__all__"
+        model = Sell
 
-
-class SellItemSerializer(ModelSerializer):
-    class Meta:
-        fields="__all__"
-        model=SellItem
-
-# buyurtma yaratish ------------------------------------------------
 
 class OrderCreateSerializer(serializers.Serializer):
-    class OrderItemCreateSerializer(serializers.Serializer):
+    class _OrderItemCreateSerializer(serializers.Serializer):
         product_id = serializers.IntegerField()
         quantity = serializers.FloatField()
-
-    id=serializers.IntegerField(read_only=True)
+    monthly_id = serializers.IntegerField(read_only=True)
     garden_id = serializers.IntegerField()
     date = serializers.DateField(read_only=True)
-    items = OrderItemCreateSerializer(many=True)
-    
+    items = _OrderItemCreateSerializer(many=True)
+
     def validate(self, attrs):
-        return super().validate(attrs)
+        data = super().validate(attrs)
+        items = data.get('items', [])
+        monthly_id = get_current_monthly().id
+        garden_id = data.get('garden_id')
+        limit = Limit.objects.filter(
+            monthly_id=monthly_id, garden_id=garden_id).first()
+        if not limit:
+            raise ValidationError(
+                {"message": "Sizga hali limit belgilanmagan"})
+        for item in items:
+            product_id = item.get('product_id')
+            quantity = item.get('quantity')
+
+            if not LimitItem.objects.filter(limit=limit, product_id=product_id, remaining_quantity__gte=quantity).exists():
+                raise ValidationError(
+                    {"message": "limitdan ortib ketti", "product_id": product_id})
+
+        return data
+
     def create(self, validated_data):
-        items = validated_data.pop('items',[])
+        items = validated_data.pop('items', [])
         garden_id = validated_data.get('garden_id')
-        objects=[]
-        order=Order.objects.create(garden_id=garden_id)
+        objects = []
+        monthly_id = get_current_monthly().id
+        order = Order.objects.create(
+            garden_id=garden_id, monthly_id=monthly_id)
         for item in items:
             obj = OrderItem(order=order)
-            obj.product_id=item.get("product_id")
-            obj.quantity=item.get("quantity")
+            obj.product_id = item.get("product_id")
+            obj.quantity = item.get("quantity")
             objects.append(obj)
         OrderItem.objects.bulk_create(objects)
         return order
-# buyurtma list
+
 
 class OrderSerializer(ModelSerializer):
-    class OrderItemSerializer(ModelSerializer):
+    class _OrderItemSerializer(ModelSerializer):
         product = ProductSerializer()
+
         class Meta:
-            exclude = ('id','order')
+            exclude = ('id', 'order')
             model = OrderItem
+    monthly = MonthlySerializer()
+    garden = GardenSerializer()
+    items = _OrderItemSerializer(many=True)
 
-    garden=GardenSerializer()
-    items = OrderItemSerializer(many=True)
     class Meta:
-        fields=("garden","date","items")
-        model=Order
-# end the oredr model ------------------------------------------------
-
-# oylik
-class MonthlySerializer(ModelSerializer):
-    class Meta:
-        fields="__all__"
-        model=Monthly
+        fields = ("garden", "date", "items", "monthly")
+        model = Order
 
 
 class LimitCreateSerializer(serializers.Serializer):
-    class ItemSerializer(serializers.Serializer):
+    class _ItemCreateSerializer(serializers.Serializer):
         product_id = serializers.IntegerField()
         limit_quantity = serializers.FloatField(default=0)
-        remaining_quantity=serializers.FloatField(read_only=True)
+        remaining_quantity = serializers.FloatField(read_only=True)
         price = serializers.IntegerField()
         market_price = serializers.IntegerField()
-    monthly_id = serializers.IntegerField()  
+    monthly_id = serializers.IntegerField(read_only=True)
     garden_id = serializers.IntegerField()
-    items = ItemSerializer(many=True)
+    items = _ItemCreateSerializer(many=True)
+
     def create(self, validated_data):
-        items = validated_data.pop('items',[])
-        limit = Limit.objects.create(garden_id=validated_data.get('garden_id'),monthly_id=validated_data.get('monthly_id'))
-        objects=[]
+        items = validated_data.pop('items', [])
+        monthly_id = get_current_monthly().id
+        limit, _ = Limit.objects.get_or_create(
+            garden_id=validated_data.get('garden_id'), monthly_id=monthly_id)
+        objects = []
         for item in items:
-            obj = LimitItem(limit_id=limit.id,**item)
-            obj.remaining_quantity=obj.limit_quantity
+            obj = LimitItem(limit_id=limit.id, **item)
+            obj.remaining_quantity = obj.limit_quantity
             objects.append(obj)
         LimitItem.objects.bulk_create(objects)
-            
+
         return limit
-    
+
+
 class LimitSerializer(ModelSerializer):
-    class ItemSerializer(ModelSerializer):
+    class _ItemSerializer(ModelSerializer):
+        product = ProductSerializer()
+
         class Meta:
-            exclude=("id",)
-            model=LimitItem
+            exclude = ("id",)
+            model = LimitItem
     monthly = MonthlySerializer()
     garden = GardenSerializer()
-    items = ItemSerializer(many=True,source='limititem_set')
-    class Meta:
-        exclude=('id',)
-        model=Limit
-# end 
+    items = _ItemSerializer(many=True, source='limititem_set')
 
+    class Meta:
+        exclude = ('id',)
+        model = Limit
 
 
 class ExpenseSerializer(ModelSerializer):
+    class _ExpenseItemSerializer(ModelSerializer):
+        class Meta:
+            fields = "__all__"
+            model = ExpenseItem
+    items = _ExpenseItemSerializer(many=True, source='expenseitem_set')
+
     class Meta:
-        fields="__all__"
-        model=Expense
+        fields = "__all__"
+        model = Expense
 
 
-class ExpenseItemSerializer(ModelSerializer):
-    class Meta:
-        fields="__all__"
-        model=ExpenseItem
+class ExpenseCreateSerializer(serializers.Serializer):
+    class _ExpenseItemCreateSerializer(serializers.Serializer):
+        expense = serializers.IntegerField(read_only=True)
+        product_id = serializers.IntegerField()
+        quantity = serializers.FloatField()
+        price = serializers.IntegerField(default=0)
+        amount = serializers.IntegerField(read_only=True)
+    items = _ExpenseItemCreateSerializer(many=True)
+
+    def create(self, validated_data):
+        monthly_id = get_current_monthly().id
+        date = datetime.now()
+        expense, _ = Expense.objects.get_or_create(
+            monthly_id=monthly_id, date=date)
+        items = validated_data.pop('items', [])
+        objects = []
+        for item in items:
+            product_id = item.get('product_id')
+            quantity = item.get('quantity')
+            price = item.get('price')
+            amount = quantity*price
+            obj = ExpenseItem(expense=expense, product_id=product_id,
+                              quantity=quantity, price=price, amount=amount)
+            objects.append(obj)
+        ExpenseItem.objects.bulk_create(objects)
+        return expense
 
 
 class StorageSerializer(ModelSerializer):
     class Meta:
-        fields="__all__"
-        model=Storage
+        fields = "__all__"
+        model = Storage
