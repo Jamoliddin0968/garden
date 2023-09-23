@@ -102,8 +102,8 @@ class LimitItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     limit_quantity = models.FloatField(default=0)
     remaining_quantity = models.FloatField(default=0)
-    price = models.IntegerField()
-    market_price = models.IntegerField()
+    price = models.IntegerField(default=0)
+    market_price = models.IntegerField(default=0)
 
     def __str__(self) -> str:
         return self.product.name

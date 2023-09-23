@@ -239,3 +239,77 @@ class StorageSerializer(ModelSerializer):
     class Meta:
         fields = "__all__"
         model = Storage
+
+
+class DailyExpence(ModelSerializer):
+    class _DailyExpenseItemSerializer(ModelSerializer):
+        class Meta:
+            fields = "__all__"
+            model = ExpenseItem
+    items = _DailyExpenseItemSerializer(many=True, source='expenseitem_set')
+
+    class Meta:
+        fields = "__all__"
+        model = Expense
+
+
+class LimitItemSerializer(ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = LimitItem
+
+
+class LimitListSerializer(ModelSerializer):
+    monthly = MonthlySerializer()
+    items = LimitItemSerializer(many=True, source='limititem_set')
+
+    class Meta:
+        fields = "__all__"
+        model = Limit
+
+
+class MontlyLimitSerializer(ModelSerializer):
+    items = LimitListSerializer(many=True, source="limit_set")
+
+    class Meta:
+        model = Monthly
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        products = Product.objects.all()
+        gardens = Garden.objects.all()
+        product_serializers = ProductSerializer(products, many=True).data
+        garden_serializer = GardenSerializer(gardens, many=True).data
+        additional_data = {"products": product_serializers,
+                           'gardens': garden_serializer}
+        data.update(additional_data)
+        return data
+
+
+class MontlyExpenseSerializer(ModelSerializer):
+    items = DailyExpence(many=True, source="expense_set")
+
+    class Meta:
+        model = Monthly
+        fields = "__all__"
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        products = Product.objects.all()
+        product_serializers = ProductSerializer(products, many=True).data
+        additional_data = {"products": product_serializers, }
+        data.update(additional_data)
+        return data
+
+
+class MonthlyGardenSerializers(serializers.Serializer):
+    class SingleLimitSerializer(serializers.ModelSerializer):
+        class Meta:
+            exclude = ("id",)
+            model = Limit
+    monthly = MonthlySerializer()
+    garden = GardenSerializer()
+    products = ProductSerializer(many=True)
+    limit = SingleLimitSerializer()
+    limit_items = LimitItemSerializer(many=True)

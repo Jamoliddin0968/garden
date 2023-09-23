@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from datetime import datetime
 
 from django.db.models import Q
@@ -13,9 +14,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import *
-from .serializers import (ExpenseCreateSerializer, ExpenseSerializer,
-                          GardenSerializer, LimitCreateSerializer,
-                          LimitSerializer, MonthlySerializer,
+from .serializers import (DailyExpence, ExpenseCreateSerializer,
+                          ExpenseSerializer, GardenSerializer,
+                          LimitCreateSerializer, LimitItemSerializer,
+                          LimitListSerializer, LimitSerializer,
+                          MonthlyGardenSerializers, MonthlySerializer,
+                          MontlyExpenseSerializer, MontlyLimitSerializer,
                           OrderCreateSerializer, OrderSerializer,
                           ProductSerializer, SellCreateSerializer,
                           SellSerializer, StorageSerializer,
@@ -25,9 +29,33 @@ MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
           'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr']
 
 
-class GardenViewSet(ListAPIView):
+class GardenViewSet(viewsets.ModelViewSet):
     serializer_class = GardenSerializer
     queryset = Garden.objects.all()
+
+    @extend_schema(
+        summary="Xarajatlar hujjati",
+        responses={
+            status.HTTP_200_OK: MonthlyGardenSerializers,
+        },
+    )
+    def retrieve(self, request, garden_id):
+        monthly = get_current_monthly()
+        garden = get_object_or_404(Garden, id=garden_id)
+        limit = Limit.objects.filter(monthly=monthly, garden=garden).first()
+        limit_items = LimitItem.objects.filter(limit=limit)
+        products = Product.objects.all()
+
+        data = {
+            "monthly": monthly,
+            "garden": garden,
+            "products": products,
+            "limit": limit,
+            "limit_items": limit_items
+        }
+
+        serializer = MonthlyGardenSerializers(data)
+        return Response(serializer.data)
 
 
 class ProductGarden(ListAPIView):
@@ -65,31 +93,6 @@ class OrderCreateAPIView(CreateAPIView):
         order = serializer.save()
         serializer_response = OrderSerializer(order)
         return Response(serializer_response.data, status=status.HTTP_201_CREATED)
-
-
-class LimitCreateAPIView(CreateAPIView):
-    serializer_class = LimitCreateSerializer
-    queryset = Limit.objects.all()
-
-    @extend_schema(
-        summary="Limit jadvaliga ma'lumot qo'shish",
-        description="Limit jadvaliga ma'lumot qo'shish: bu yerda bitta bog'cha uchun itemlar kiritladi",
-        tags=["Limit"],
-        request=LimitCreateSerializer,
-        responses={status.HTTP_201_CREATED: LimitSerializer, }
-    )
-    def post(self, request, *args, **kwargs):
-        serializer = LimitCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        limit = serializer.save()
-        serializer = LimitSerializer(limit)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
-# class ExpenseViewSet(viewsets.ModelViewSet):
-#     serializer_class = ExpenseSerializer
-#     queryset = Expense.objects.all()
 
 
 class GetActiveMonthly(GenericAPIView):
@@ -179,7 +182,7 @@ class SellCreateAPIView(CreateAPIView):
         return Response(serializer_response.data, status=status.HTTP_201_CREATED)
 
 
-class ExpenseCreateAPIView(CreateAPIView):
+class ExpenseViewSet(viewsets.ModelViewSet):
     model = Expense
     serializer_class = ExpenseSerializer
 
@@ -192,9 +195,81 @@ class ExpenseCreateAPIView(CreateAPIView):
             status.HTTP_201_CREATED: ExpenseSerializer,
         },
     )
-    def post(self, request, *args, **kwargs):
+    def create(self, request, *args, **kwargs):
         serializer = ExpenseCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         expense = serializer.save()
         serializer_response = ExpenseSerializer(expense)
         return Response(serializer_response.data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        summary="Hozirgi Xarajatlar hujjati",
+        description="hozirgi Xarajatlar hujjati",
+        tags=["Expense"],
+        request=None,
+        responses={
+            status.HTTP_200_OK: MontlyExpenseSerializer,
+        },
+    )
+    def list(self, request, *args, **kwargs):
+        monthly = Monthly.objects.filter(is_active=True).first()
+        serializer = MontlyExpenseSerializer(monthly)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Hozirgi Xarajatlar hujjati",
+        description="hozirgi Xarajatlar hujjati",
+        tags=["Expense"],
+        request=None,
+        responses={
+            status.HTTP_200_OK: MontlyExpenseSerializer,
+        },
+    )
+    def retrieve(self, request, date):
+        expense = Expense.objects.filter(date=date).first()
+        serializer = DailyExpence(expense).data
+        products = Product.objects.all()
+        product_serializers = ProductSerializer(products, many=True).data
+        additional_data = {"products": product_serializers, }
+        serializer.update(additional_data)
+        return Response(serializer)
+
+# --------------------------------------------------------------------------------
+# hisobotlar
+
+
+class LimitViewSet(viewsets.ModelViewSet):
+    serializer_class = MontlyLimitSerializer
+    model = Monthly
+
+    @extend_schema(
+        summary="Limit jadvali",
+        description="""
+                        Limit jadvali bu yerda productlar va bog'chalar ro'yhati ham birga keladi
+                        product ro'yhatidagi id bilan product_id ni va  bog'lab jadval yasab olasiz bog'chlar ham shu ko'rinishda bo
+                        ladi
+                    """,
+        tags=["Monthly"],
+        responses={
+            status.HTTP_201_CREATED: MontlyLimitSerializer,
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        monthly = Monthly.objects.filter(is_active=True).first()
+        serializer = MontlyLimitSerializer(monthly)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Limit jadvaliga ma'lumot qo'shish",
+        description="Limit jadvaliga ma'lumot qo'shish: bu yerda bitta bog'cha uchun itemlar kiritladi",
+        tags=["Limit"],
+        request=LimitCreateSerializer,
+        responses={status.HTTP_201_CREATED: LimitSerializer, }
+    )
+    def post(self, request, *args, **kwargs):
+        serializer = LimitCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        limit = serializer.save()
+        serializer = LimitSerializer(limit)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
