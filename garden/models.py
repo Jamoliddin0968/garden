@@ -141,7 +141,7 @@ class Storage(models.Model):
         ombor hujjati
     """
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    balance = models.FloatField(verbose_name="Qoldiq")
+    balance = models.FloatField(verbose_name="Qoldiq", default=0)
 
     def __str__(self) -> str:
         return f"{self.product}"

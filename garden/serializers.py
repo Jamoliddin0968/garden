@@ -70,6 +70,11 @@ class SellCreateSerializer(serializers.Serializer):
                 sell=sell_object, price=price, product_id=product_id, quantity=quantity)
             objects.append(obj)
         SellItem.objects.bulk_create(objects)
+        for obj in objects:
+            product_id, quantity = obj.product_id, obj.quantity
+            product, _ = Storage.objects.get_or_create(product_id=product_id)
+            product.balance -= quantity
+            product.save()
         return sell_object
 
 
@@ -232,6 +237,11 @@ class ExpenseCreateSerializer(serializers.Serializer):
                               quantity=quantity, price=price, amount=amount)
             objects.append(obj)
         ExpenseItem.objects.bulk_create(objects)
+        for obj in objects:
+            product_id, quantity = obj.product_id, obj.quantity
+            product, _ = Storage.objects.get_or_create(product_id=product_id)
+            product.balance += quantity
+            product.save()
         return expense
 
 

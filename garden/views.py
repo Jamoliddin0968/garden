@@ -1,8 +1,7 @@
-from django.shortcuts import get_object_or_404
 from datetime import datetime
 
 from django.db.models import Q
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
                                    extend_schema)

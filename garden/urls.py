@@ -24,5 +24,5 @@ router = routers.SimpleRouter()
 
 # router.register(r'Garden', GardenViewSet)
 # router.register('expense',)
-# router.register(r'Storage', StorageViewSet)
+router.register(r'Storage', StorageViewSet)
 urlpatterns += router.urls
