@@ -19,6 +19,7 @@ class Monthly(models.Model):
         return self.year+' '+self.month
 
 
+
 class Garden(models.Model):
     name = models.CharField(max_length=255)
     person = models.CharField(max_length=63)
@@ -26,6 +27,10 @@ class Garden(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+    
+    class Meta:
+        verbose_name = "Bog'cha"
+        verbose_name_plural = "Bog'chalar"
 
 
 class Product(models.Model):
@@ -34,6 +39,10 @@ class Product(models.Model):
 
     def __str__(self) -> str:
         return f"{self.name}"
+
+    class Meta:
+        verbose_name = "Mahsulot"
+        verbose_name_plural = "Mahsulotlar"
 
 
 class Sell(models.Model):
@@ -73,6 +82,10 @@ class Order(models.Model):
 
     def __str__(self) -> str:
         return f"{self.garden} {self.date}"
+    
+    class Meta:
+        verbose_name = "Buyurtma"
+        verbose_name_plural = "Buyurtmalar"
 
 
 class OrderItem(models.Model):
@@ -120,6 +133,10 @@ class Expense(models.Model):
 
     def __str__(self) -> str:
         return f"{self.monthly} {self.date}"
+    
+    class Meta:
+        verbose_name = "Xarajat"
+        verbose_name_plural = "Xarajatlar"
 
 
 class ExpenseItem(models.Model):
@@ -145,3 +162,7 @@ class Storage(models.Model):
 
     def __str__(self) -> str:
         return f"{self.product}"
+
+    class Meta:
+        verbose_name = "Ombor"
+        verbose_name_plural = "Ombor"
