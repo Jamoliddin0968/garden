@@ -6,6 +6,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
                                    extend_schema)
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.generics import (CreateAPIView, GenericAPIView,
                                      ListAPIView, RetrieveAPIView)
@@ -22,7 +23,7 @@ from .serializers import (DailyExpence, ExpenseCreateSerializer,
                           OrderCreateSerializer, OrderSerializer,
                           ProductSerializer, SellCreateSerializer,
                           SellSerializer, StorageSerializer,
-                          get_current_monthly)
+                          get_current_monthly,PhoneSerializer)
 
 MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
           'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr']
@@ -31,6 +32,21 @@ MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
 class GardenViewSet(viewsets.ModelViewSet):
     serializer_class = GardenSerializer
     queryset = Garden.objects.all()
+
+    @extend_schema(
+        summary="Telefon raqam bo'yicha ma'lumot",
+        request=PhoneSerializer,
+        responses={
+            status.HTTP_200_OK: GardenSerializer,
+        },
+    )
+    @action(detail=True, methods=['post'])
+    def get_by_phone_number(self, request):
+        data = PhoneSerializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        obj = get_object_or_404(Garden, phone_number=data.validated_data['phone_number'])
+        serializer = GardenSerializer(obj)
+        return Response(serializer.data)
 
     @extend_schema(
         summary="Xarajatlar hujjati",
@@ -57,10 +73,17 @@ class GardenViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+
 class ProductGarden(ListAPIView):
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
 
+    @extend_schema(
+        summary="Bog'cha uchun mahsluotlar",
+        responses={
+            status.HTTP_200_OK: LimitSerializer,
+        },
+    )
     def get(self, request, garden_id):
         monthly_id = get_current_monthly().id
         limits = Limit.objects.filter(

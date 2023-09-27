@@ -23,7 +23,8 @@ class MonthlySerializer(ModelSerializer):
         fields = "__all__"
         model = Monthly
 
-
+class PhoneSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=20)
 class ProductGardenParametr(serializers.Serializer):
     monthly_id = serializers.IntegerField()
     garden_id = serializers.IntegerField()

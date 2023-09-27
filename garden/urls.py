@@ -17,7 +17,8 @@ urlpatterns = [
     path('garden/all/', GardenViewSet.as_view({"get": "list"})),
     path('garden/monthly/<int:garden_id>',
          GardenViewSet.as_view({"get": "retrieve"})),
-    path('limit/', LimitViewSet.as_view({'get': 'get'}))
+    path('limit/', LimitViewSet.as_view({'get': 'get'})),
+    path('garden/check/',GardenViewSet.as_view({"post":"get_by_phone_number"}))
 ]
 
 router = routers.SimpleRouter()
