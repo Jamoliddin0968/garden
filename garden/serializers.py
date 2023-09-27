@@ -2,6 +2,7 @@
 from datetime import datetime
 
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer
@@ -23,8 +24,21 @@ class MonthlySerializer(ModelSerializer):
         fields = "__all__"
         model = Monthly
 
-class PhoneSerializer(serializers.Serializer):
+
+class TgAuthSerializer(serializers.Serializer):
     phone_number = serializers.CharField(max_length=20)
+    user_id = serializers.CharField(max_length=10)
+
+    def validate(self, attrs):
+
+        data = super().validate(attrs)
+        phone_number = data.get('phone_number')
+        if not phone_number.startswith('+'):
+            phone_number = '+'+phone_number
+            data["phone_number"] = phone_number
+        return data
+
+
 class ProductGardenParametr(serializers.Serializer):
     monthly_id = serializers.IntegerField()
     garden_id = serializers.IntegerField()
@@ -103,7 +117,7 @@ class OrderCreateSerializer(serializers.Serializer):
         product_id = serializers.IntegerField()
         quantity = serializers.FloatField()
     monthly_id = serializers.IntegerField(read_only=True)
-    garden_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
     date = serializers.DateField(read_only=True)
     items = _OrderItemCreateSerializer(many=True)
 
@@ -129,7 +143,8 @@ class OrderCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         items = validated_data.pop('items', [])
-        garden_id = validated_data.get('garden_id')
+        user_id = validated_data.get('user_id')
+        garden_id = get_object_or_404(Garden, user_id=user_id).id
         objects = []
         monthly_id = get_current_monthly().id
         order = Order.objects.create(

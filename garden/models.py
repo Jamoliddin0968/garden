@@ -18,16 +18,20 @@ class Monthly(models.Model):
     def __str__(self) -> str:
         return self.year+' '+self.month
 
+    class Meta:
+        verbose_name = "Oy"
+        verbose_name_plural = "Oylar"
 
 
 class Garden(models.Model):
     name = models.CharField(max_length=255)
     person = models.CharField(max_length=63)
     phone_number = models.CharField(max_length=15)
+    tg_user_id = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.name}"
-    
+
     class Meta:
         verbose_name = "Bog'cha"
         verbose_name_plural = "Bog'chalar"
@@ -57,6 +61,10 @@ class Sell(models.Model):
     def __str__(self) -> str:
         return f"{self.garden} {self.date}"
 
+    class Meta:
+        verbose_name = "Yetkazib berish"
+        verbose_name_plural = "Yetkazib berish"
+
 
 class SellItem(models.Model):
     """
@@ -82,7 +90,7 @@ class Order(models.Model):
 
     def __str__(self) -> str:
         return f"{self.garden} {self.date}"
-    
+
     class Meta:
         verbose_name = "Buyurtma"
         verbose_name_plural = "Buyurtmalar"
@@ -104,6 +112,13 @@ class OrderItem(models.Model):
 class Limit(models.Model):
     monthly = models.ForeignKey(Monthly, on_delete=models.CASCADE)
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.monthly}  {self.garden}"
+
+    class Meta:
+        verbose_name = "Limit"
+        verbose_name_plural = "Limit"
 
 
 class LimitItem(models.Model):
@@ -133,7 +148,7 @@ class Expense(models.Model):
 
     def __str__(self) -> str:
         return f"{self.monthly} {self.date}"
-    
+
     class Meta:
         verbose_name = "Xarajat"
         verbose_name_plural = "Xarajatlar"
