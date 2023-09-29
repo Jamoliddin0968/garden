@@ -29,11 +29,12 @@ def my_model_post_save(sender, instance, created, **kwargs):
                 product.measure = measure
                 product.save()
             for j in i.keys():
+                cnt = i.get('j', 0)
                 garden, _ = Garden.objects.get_or_create(name=j)
                 limit, _ = Limit.objects.get_or_create(
                     monthly=monthly, garden=garden)
-                obj = LimitItem(limit=limit, product=product, limit_quantity=count,
-                                remaining_quantity=count, price=price, market_price=shop_price
+                obj = LimitItem(limit=limit, product=product, limit_quantity=cnt,
+                                remaining_quantity=cnt, price=price, market_price=shop_price
                                 )
                 objects.append(obj)
         LimitItem.objects.bulk_create(objects)
