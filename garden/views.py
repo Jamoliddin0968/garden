@@ -105,12 +105,9 @@ class ProductGarden(ListAPIView):
     def get(self, request, user_id):
         monthly_id = get_current_monthly().id
         garden_id = get_object_or_404(Garden, tg_user_id=user_id).id
-        limits = Limit.objects.filter(
-            Q(monthly_id=monthly_id) & Q(garden_id=garden_id)).first()
-        if not limits:
-            raise ValidationError(
-                {"message": "Sizga hali limit belgilanmagan"})
-        serializer = LimitSerializer(limits)
+        limit, _ = Limit.objects.create(
+            monthly_id=monthly_id, garden_id=garden_id)
+        serializer = LimitSerializer(limit)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
