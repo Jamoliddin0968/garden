@@ -105,7 +105,7 @@ class ProductGarden(ListAPIView):
     def get(self, request, user_id):
         monthly_id = get_current_monthly().id
         garden_id = get_object_or_404(Garden, tg_user_id=user_id).id
-        limit, _ = Limit.objects.create(
+        limit, _ = Limit.objects.get_or_create(
             monthly_id=monthly_id, garden_id=garden_id)
         serializer = LimitSerializer(limit)
         return Response(serializer.data, status=status.HTTP_200_OK)
