@@ -1,3 +1,4 @@
+# myapp/forms.py
 from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group, User
@@ -5,6 +6,11 @@ from phonenumber_field.formfields import PhoneNumberField
 from phonenumber_field.widgets import PhoneNumberPrefixWidget
 
 from .models import *
+
+
+class ExcelUploadForm(forms.Form):
+    excel_file = forms.FileField()
+
 
 admin.site.register((Monthly,
                      Storage))
@@ -85,3 +91,8 @@ class ExpenseAdmin(admin.ModelAdmin):
     inlines = (ExpenseItemInline,)
 
 # ADMIN_SITE_HEADER = ''
+
+
+@admin.register(ExcelFile)
+class ExcelFileAdmin(admin.ModelAdmin):
+    pass

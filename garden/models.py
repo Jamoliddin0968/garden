@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db import models
 
 MONTH_NAMES = (('Yanvar', 'Yanvar'), ('Fevral', 'Fevral'), ('Mart', 'Mart'), ('Aprel', 'Aprel'), ('May', 'May'), ('Iyun', 'Iyun'),
@@ -165,7 +167,7 @@ class ExpenseItem(models.Model):
     amount = models.IntegerField(default=0)
 
     def __str__(self) -> str:
-        return f"{self.monthly} {self.product}"
+        return f"{self.product}"
 
 
 class Storage(models.Model):
@@ -187,3 +189,10 @@ class ExcelFile(models.Model):
     excel_file = models.FileField(
         ("Excel file"), upload_to="excel files", max_length=100)
     monthly = models.ForeignKey(Monthly, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.monthly}"
+
+    class Meta:
+        verbose_name = "Excel filelar"
+        verbose_name_plural = "Excel filelar"
