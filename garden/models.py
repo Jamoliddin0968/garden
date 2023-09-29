@@ -181,3 +181,9 @@ class Storage(models.Model):
     class Meta:
         verbose_name = "Ombor"
         verbose_name_plural = "Ombor"
+
+
+class ExcelFile(models.Model):
+    excel_file = models.FileField(
+        ("Excel file"), upload_to="excel files", max_length=100)
+    monthly = models.ForeignKey(Monthly, on_delete=models.CASCADE)

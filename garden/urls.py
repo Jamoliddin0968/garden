@@ -10,7 +10,7 @@ urlpatterns = [
          ActiveMonthly.as_view({"post": "create_new_monthly"})),
     path('close_current_monthly/',
          ActiveMonthly.as_view({"post": "close_active_monthly"})),
-    path('products/<int:garden_id>/', ProductGarden.as_view()),
+    path('products/<int:user_id>/', ProductGarden.as_view()),
     path('limit/create/', LimitViewSet.as_view({'post': 'post'})),
     path('sell_create/', SellCreateAPIView.as_view()),
     path('expense/create/', ExpenseViewSet.as_view({"post": "create"})),
