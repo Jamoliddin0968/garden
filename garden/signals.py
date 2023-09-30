@@ -35,12 +35,12 @@ def my_model_post_save(sender, instance, created, **kwargs):
                     product_list.append(product)
                 for j in i.keys():
                     cnt = i.get(j)
-                    if isinstance(cnt, float) and math.isnan(cnt):
-                        cnt = 0
+                    if isinstance(cnt, float) or math.isnan(cnt) or cnt == 0:
+                        continue
                     try:
                         cnt = float(cnt)
                     except:
-                        cnt = 0
+                        continue
 
                     garden, is_avialibel = Garden.objects.get_or_create(name=j)
                     if is_avialibel:
