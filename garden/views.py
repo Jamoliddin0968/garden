@@ -24,6 +24,7 @@ from .serializers import (DailyExpence, ExpenseCreateSerializer,
                           ProductSerializer, SellCreateSerializer,
                           SellSerializer, StorageSerializer, TgAuthSerializer,
                           get_current_monthly)
+from .services import send_sms_order
 
 MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
           'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr']
@@ -129,7 +130,9 @@ class OrderCreateAPIView(CreateAPIView):
         serializer = OrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
+
         serializer_response = OrderSerializer(order)
+        send_sms_order(order.garden.phone_number, order.garden.name)
         return Response(serializer_response.data, status=status.HTTP_201_CREATED)
 
 

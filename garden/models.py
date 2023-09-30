@@ -7,6 +7,10 @@ MONTH_NAMES = (('Yanvar', 'Yanvar'), ('Fevral', 'Fevral'), ('Mart', 'Mart'), ('A
 # Create your models here.
 
 
+class Contact(models.Model):
+    phone_number = models.CharField(max_length=20)
+
+
 class Monthly(models.Model):
     """
         Yangi oylik davr

@@ -125,7 +125,8 @@ class OrderCreateSerializer(serializers.Serializer):
         data = super().validate(attrs)
         items = data.get('items', [])
         monthly_id = get_current_monthly().id
-        garden_id = data.get('garden_id')
+        garden_id = get_object_or_404(
+            Garden, tg_user_id=data.get('user_id')).id
         limit = Limit.objects.filter(
             monthly_id=monthly_id, garden_id=garden_id).first()
         if not limit:
@@ -144,7 +145,7 @@ class OrderCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         items = validated_data.pop('items', [])
         user_id = validated_data.get('user_id')
-        garden_id = get_object_or_404(Garden, user_id=user_id).id
+        garden_id = get_object_or_404(Garden, tg_user_id=user_id).id
         objects = []
         monthly_id = get_current_monthly().id
         order = Order.objects.create(

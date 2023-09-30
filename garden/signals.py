@@ -1,3 +1,5 @@
+import math
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
@@ -29,7 +31,14 @@ def my_model_post_save(sender, instance, created, **kwargs):
                 product.measure = measure
                 product.save()
             for j in i.keys():
-                cnt = i.get('j', 0)
+                cnt = i.get(j)
+                if isinstance(cnt, float) and math.isnan(cnt):
+                    cnt = 0
+                try:
+                    cnt = float(cnt)
+                except:
+                    cnt = 0
+
                 garden, _ = Garden.objects.get_or_create(name=j)
                 limit, _ = Limit.objects.get_or_create(
                     monthly=monthly, garden=garden)
