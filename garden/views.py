@@ -132,7 +132,7 @@ class OrderCreateAPIView(CreateAPIView):
         order = serializer.save()
 
         serializer_response = OrderSerializer(order)
-        send_sms_order(order.garden.phone_number, order.garden.name)
+        send_sms_order("+998941791211", order.garden.name)
         return Response(serializer_response.data, status=status.HTTP_201_CREATED)
 
 
