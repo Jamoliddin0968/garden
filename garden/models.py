@@ -198,5 +198,5 @@ class ExcelFile(models.Model):
         return f"{self.monthly}"
 
     class Meta:
-        verbose_name = "Excel filelar"
-        verbose_name_plural = "Excel filelar"
+        verbose_name = "Excel fayllar"
+        verbose_name_plural = "Excel fayllar"
