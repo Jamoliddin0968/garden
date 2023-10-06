@@ -40,7 +40,7 @@ def my_model_post_save(sender, instance, created, **kwargs):
                             if (isinstance(cnt, float) and math.isnan(cnt)) or cnt == 0:
                                 continue
 
-                            garden, is_avialibel = Garden.objects.get_or_create(
+                            garden, _ = Garden.objects.get_or_create(
                                 name=j)
 
                             limit, _ = Limit.objects.get_or_create(

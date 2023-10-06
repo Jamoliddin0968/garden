@@ -145,15 +145,21 @@ class OrderCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         items = validated_data.pop('items', [])
         user_id = validated_data.get('user_id')
-        garden_id = get_object_or_404(Garden, tg_user_id=user_id).id
+        garden = get_object_or_404(Garden, tg_user_id=user_id)
         objects = []
         monthly_id = get_current_monthly().id
         order = Order.objects.create(
-            garden_id=garden_id, monthly_id=monthly_id)
+            garden=garden, monthly_id=monthly_id)
+        limit = Limit.objects.filter(
+            garden=garden, monthly_id=monthly_id).first()
         for item in items:
             obj = OrderItem(order=order)
             obj.product_id = item.get("product_id")
             obj.quantity = item.get("quantity")
+            product = LimitItem.objects.filter(
+                limit=limit, product_id=obj.product_id)
+            product.remaining_quantity = product.remaining_quantity-obj.quantity
+            product.save()
             objects.append(obj)
         OrderItem.objects.bulk_create(objects)
         return order

@@ -33,6 +33,8 @@ class Garden(models.Model):
     name = models.CharField(max_length=255)
     person = models.CharField(max_length=63)
     phone_number = models.CharField(max_length=15)
+    adress = models.CharField(max_length=127, null=True)
+    stir = models.CharField(max_length=10, null=True)
     tg_user_id = models.CharField(max_length=10, null=True, blank=True)
 
     def __str__(self) -> str:
