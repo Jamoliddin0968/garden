@@ -12,8 +12,8 @@ class ExcelUploadForm(forms.Form):
     excel_file = forms.FileField()
 
 
-admin.site.register((Monthly,
-                     Storage))
+admin.site.register(
+                     Storage)
 admin.site.unregister((User, Group))
 
 

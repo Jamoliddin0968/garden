@@ -97,7 +97,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DB_NAME = config('DB_NAME', 'test')
 DB_HOST = config('DB_HOST', 'localhost')
 DB_PORT = config('DB_PORT', 3306)
-DB_PASSWORD = config('DB_PASSWORD', '11111111')
+DB_PASSWORD = config('DB_PASSWORD', '7864')
 DB_USER = config('DB_USER', 'root')
 DATABASES = {
     'default': {
@@ -202,13 +202,13 @@ SIMPLE_JWT = {
 }
 JAZZMIN_SETTINGS = {
     # title of the window (Will default to current_admin_site.site_title if absent or None)
-    "site_title": "Valley coders",
+    "site_title": "My DMTT",
 
     # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_header": "Valley coders",
+    "site_header": "My DMTT",
 
     # Title on the brand (19 chars max) (defaults to current_admin_site.site_header if absent or None)
-    "site_brand": "Valley coders",
+    "site_brand": "My DMTT",
 
     # Logo to use for your site, must be present in static files, used for brand on top left
     "site_logo": "images/logo.jpg",
@@ -226,10 +226,10 @@ JAZZMIN_SETTINGS = {
     "site_icon": "images/logo.png",
 
 
-    "welcome_sign": "Welcome to the Valley coders",
+    "welcome_sign": "Welcome to the Valley Coders",
 
 
-    "copyright": "Acme EValley coders Ltd",
+    "copyright": "Valley Coders",
 
     # "search_model": ["garden.Teacher", "students.Student", "course.Course"],
 
@@ -248,8 +248,8 @@ JAZZMIN_SETTINGS = {
 
     # Additional links to include in the user menu on the top right ("app" url type is not allowed)
     "usermenu_links": [
-        {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues",
-            "new_window": True},
+        {"name": "Support", "url": "https://t.me/valleyboy_uz/",
+            "new_window": True, "icon": "fas fa-headset"},
         {"model": "users.User"}
     ],
 
@@ -280,7 +280,14 @@ JAZZMIN_SETTINGS = {
         "garden.Limit": "fa fa-tasks",
         "garden.Order": "fa  fa-shopping-cart",
         "garden.Garden": "fas fa-school",
+        "garden.ExcelFile": "fa fa-file-excel",
         "garden.Product": "fa fa-cutlery fa-hamburger",
+        "garden.Storage": "fa fa-store",
+        "garden.Expense": "fas fa-money-bill-wave",
+        "garden.Sell": "fa fa-truck",
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
     },
     # Icons that are used when one is not manually specified
     "default_icon_parents": "fas fa-chevron-circle-right",
