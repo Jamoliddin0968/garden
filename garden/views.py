@@ -316,8 +316,9 @@ class DocumentViewSet(viewsets.ViewSet):
     #         "message": {"type": "string", "example": "OK"}}}}
     # )
     @action(detail=True, methods=['get'])
-    def hisob_factura(self, request, garden_id):
+    def hisob_factura(self, request, user_id):
         monthly_id = get_current_monthly().id
+        garden_id = Garden(tg_user_id=user_id).id
         instanse = get_hisob_factura(monthly_id, garden_id)
         data = DocumentSerializer(instanse).data
         file_path = instanse.file.path

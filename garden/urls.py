@@ -24,7 +24,7 @@ urlpatterns = [
     path('garden/detail/',
          GardenViewSet.as_view({"post": "get_by_phone_number"})),
     path('limit/', LimitViewSet.as_view({'get': 'get'})),
-    path('get_hisob_factura/<int:garden_id>',
+    path('get_hisob_factura/<int:user_id>',
          DocumentViewSet.as_view({'get': "hisob_factura"}))
 ]
 
