@@ -4,7 +4,7 @@ from rest_framework import routers
 from .views import *
 
 urlpatterns = [
-    path('order/create/', OrderCreateAPIView.as_view()),
+    path('order/create/', OrderCreateAPIView.as_view({"post": "post"})),
     path('get_current_monthly/', ActiveMonthly.as_view({"get": "get"})),
     path('create_new_monthly/',
          ActiveMonthly.as_view({"post": "create_new_monthly"})),
@@ -25,7 +25,9 @@ urlpatterns = [
          GardenViewSet.as_view({"post": "get_by_phone_number"})),
     path('limit/', LimitViewSet.as_view({'get': 'get'})),
     path('get_hisob_factura/<int:user_id>',
-         DocumentViewSet.as_view({'get': "hisob_factura"}))
+         DocumentViewSet.as_view({'get': "hisob_factura"})),
+    path('verify_order/<int:order_id>',
+         OrderCreateAPIView.as_view({"get": "verify_order"}), name="verify_order"),
 ]
 
 router = routers.SimpleRouter()

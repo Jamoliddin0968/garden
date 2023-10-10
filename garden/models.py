@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.db import models
+from django.urls import reverse
 
 MONTH_NAMES = (('Yanvar', 'Yanvar'), ('Fevral', 'Fevral'), ('Mart', 'Mart'), ('Aprel', 'Aprel'), ('May', 'May'), ('Iyun', 'Iyun'),
                ('Iyul', 'Iyul'), ('Avgust', 'Avgust'), ('Sentyabr', 'Sentyabr'), ('Oktyabr', 'Oktyabr'), ('Noyabr', 'Noyabr'), ('Dekabr', 'Dekabr'))
@@ -95,6 +96,11 @@ class Order(models.Model):
     monthly = models.ForeignKey(Monthly, on_delete=models.CASCADE)
     garden = models.ForeignKey(Garden, on_delete=models.CASCADE)
     date = models.DateField(auto_now_add=True)
+    is_verify = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
+
+    def get_absolute_url(self):
+        return reverse("verify_order/", kwargs={"order_id": self.id})
 
     def __str__(self) -> str:
         return f"{self.garden} {self.date}"

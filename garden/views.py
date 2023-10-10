@@ -112,13 +112,13 @@ class ProductGarden(ListAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class OrderCreateAPIView(CreateAPIView):
+class OrderCreateAPIView(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
 
     @extend_schema(
-        summary="Buyurtma yaratish",
-        description="Buyurtma yaratish",
+        summary="Tasdiqlanmagan Buyurtma yaratish",
+        description="Tasdiqlanmagan Buyurtma yaratish",
         request=OrderCreateSerializer,
         responses={
             status.HTTP_201_CREATED: OrderSerializer,
@@ -130,10 +130,21 @@ class OrderCreateAPIView(CreateAPIView):
         serializer = OrderCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
+        send_sms_order("+998903698008", order.garden.name)
+        return Response({"url": order.get_absolute_url}, status=status.HTTP_201_CREATED)
 
-        serializer_response = OrderSerializer(order)
-        send_sms_order("+998941791211", order.garden.name)
-        return Response(serializer_response.data, status=status.HTTP_201_CREATED)
+    @extend_schema(
+        summary="Buyurtmani tasdiqlash",
+        description="Buyurtmani tasdiqlash",
+        responses={status.HTTP_200_OK: {"type": "object", "properties": {
+            "message": {"type": "string", "example": "OK"}}}}
+    )
+    @action(detail=True, methods=['post'])
+    def verify_order(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+        order.is_verify = True
+        order.save()
+        return Response({"message": "OK"}, status=200)
 
 
 class ActiveMonthly(viewsets.ModelViewSet):

@@ -156,10 +156,6 @@ class OrderCreateSerializer(serializers.Serializer):
             obj = OrderItem(order=order)
             obj.product_id = item.get("product_id")
             obj.quantity = item.get("quantity")
-            product = LimitItem.objects.filter(
-                limit=limit, product_id=obj.product_id)
-            product.remaining_quantity = product.remaining_quantity-obj.quantity
-            product.save()
             objects.append(obj)
         OrderItem.objects.bulk_create(objects)
         return order
