@@ -123,7 +123,10 @@ class OrderCreateAPIView(viewsets.ModelViewSet):
         responses={
             status.HTTP_201_CREATED: OrderSerializer,
             status.HTTP_400_BAD_REQUEST: {"type": "object", "properties": {
-                "message": {"type": "string", "example": "Limitdan o'tib ketdi"}}}
+                "message": {"type": "string", "example": "Limitdan o'tib ketdi"}}},
+            status.HTTP_201_CREATED: {"type": "object", "properties": {
+                "url": {"type": "string", "example": "ggdhjvgsdj"}}}
+
         },
     )
     def post(self, request, *args, **kwargs):
