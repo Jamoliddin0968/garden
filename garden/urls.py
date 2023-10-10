@@ -28,6 +28,8 @@ urlpatterns = [
          DocumentViewSet.as_view({'get': "hisob_factura"})),
     path('verify_order/<int:order_id>',
          OrderCreateAPIView.as_view({"get": "verify_order"}), name="verify_order"),
+    path('cancel_order/<int:order_id>',
+         OrderCreateAPIView.as_view({"get": "cancel_order"}), name="cancel_order"),
 ]
 
 router = routers.SimpleRouter()

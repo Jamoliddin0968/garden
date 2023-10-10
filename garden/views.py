@@ -149,6 +149,18 @@ class OrderCreateAPIView(viewsets.ModelViewSet):
         order.save()
         return Response({"message": "OK"}, status=200)
 
+    @extend_schema(
+        summary="Buyurtmani bekor qilish",
+        description="Buyurtmani bekor qilish",
+        responses={status.HTTP_200_OK: {"type": "object", "properties": {
+            "message": {"type": "string", "example": "OK"}}}}
+    )
+    @action(detail=True, methods=['post'])
+    def verify_order(self, request, order_id):
+        order = get_object_or_404(Order, id=order_id)
+        order.delete()
+        return Response({"message": "OK"}, status=200)
+
 
 class ActiveMonthly(viewsets.ModelViewSet):
     serializer_class = MonthlySerializer

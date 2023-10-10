@@ -102,6 +102,9 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse("verify_order/", kwargs={"order_id": self.id})
 
+    def get_cancel_url(self):
+        return reverse("cancel_order/", kwargs={"order_id": self.id})
+
     def __str__(self) -> str:
         return f"{self.garden} {self.date}"
 
