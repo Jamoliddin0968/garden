@@ -134,7 +134,7 @@ class OrderCreateAPIView(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
         send_sms_order("+998903698008", order.garden.name)
-        return Response({"url": order.get_absolute_url}, status=status.HTTP_201_CREATED)
+        return Response({"verify_url": order.get_absolute_url, "cancel_url": order.get_cancel_url}, status=status.HTTP_201_CREATED)
 
     @extend_schema(
         summary="Buyurtmani tasdiqlash",
