@@ -1,31 +1,30 @@
 from datetime import datetime
 
-from django.db.models import Q
+from django.http import FileResponse, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, render
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (OpenApiExample, OpenApiParameter,
-                                   extend_schema)
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ParseError, ValidationError
-from rest_framework.generics import (CreateAPIView, GenericAPIView,
-                                     ListAPIView, RetrieveAPIView)
+from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .documents import get_hisob_factura
 from .models import *
-from .serializers import (DailyExpence, ExpenseCreateSerializer,
-                          ExpenseSerializer, GardenSerializer,
-                          LimitCreateSerializer, LimitItemSerializer,
-                          LimitListSerializer, LimitSerializer,
-                          MonthlyGardenSerializers, MonthlySerializer,
-                          MontlyExpenseSerializer, MontlyLimitSerializer,
-                          OrderCreateSerializer, OrderSerializer,
-                          ProductSerializer, SellCreateSerializer,
-                          SellSerializer, StorageSerializer, TgAuthSerializer,
+from .serializers import (DailyExpence, DocumentSerializer,
+                          ExpenseCreateSerializer, ExpenseSerializer,
+                          GardenSerializer, LimitCreateSerializer,
+                          LimitItemSerializer, LimitListSerializer,
+                          LimitSerializer, MonthlyGardenSerializers,
+                          MonthlySerializer, MontlyExpenseSerializer,
+                          MontlyLimitSerializer, OrderCreateSerializer,
+                          OrderSerializer, ProductSerializer,
+                          SellCreateSerializer, SellSerializer,
+                          StorageSerializer, TgAuthSerializer,
                           get_current_monthly)
 from .services import send_sms_order
+
+# from wsgiref.util import FileWrapper
+
 
 MONTHS = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
           'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr']
@@ -304,3 +303,26 @@ class LimitViewSet(viewsets.ModelViewSet):
         serializer = LimitSerializer(limit)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class DocumentViewSet(viewsets.ViewSet):
+
+    # @extend_schema(
+    #     summary="Hozirgi aktiv oylikni yopish",
+    #     description="Hozirigi aktiv oylik hisobotni yopish",
+    #     tags=["monthly"],
+    #     request=None,
+    #     responses={status.HTTP_200_OK: {"type": "object", "properties": {
+    #         "message": {"type": "string", "example": "OK"}}}}
+    # )
+    @action(detail=True, methods=['get'])
+    def hisob_factura(self, request, garden_id):
+        monthly_id = get_current_monthly().id
+        instanse = get_hisob_factura(monthly_id, garden_id)
+        data = DocumentSerializer(instanse).data
+        file_path = instanse.file.path
+
+    # Create a FileResponse and set the content type
+        response = FileResponse(open(file_path, 'rb'))
+        response['Content-Disposition'] = f'attachment; filename="{instanse.file.name}"'
+        return response

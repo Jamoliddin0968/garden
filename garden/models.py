@@ -202,3 +202,8 @@ class ExcelFile(models.Model):
     class Meta:
         verbose_name = "Excel fayllar"
         verbose_name_plural = "Excel fayllar"
+
+
+class Documents(models.Model):
+    file = models.FileField(upload_to="factura",
+                            max_length=100, null=True, blank=True)

@@ -1,9 +1,11 @@
 from datetime import datetime
 
+import pdfkit
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.files import File
 from docxtpl import DocxTemplate
 
-from .models import Garden, Limit, LimitItem
+from .models import Documents, Garden, Limit, LimitItem
 
 
 def get_format_number(number):
@@ -67,6 +69,12 @@ def get_hisob_factura(monthly_id, garden_id):
     template.render(context)
     now = datetime.now()
     filename = now.strftime("%Y-%m-%d-%H-%M-%S")
+    base_file_path = f"documents/{filename}"
+    filename = f'{base_file_path}.docx'
+    # pdffilepath = f'{base_file_path}.pdf'
     # Save the generated document to a new file
-    template.save(f"documents/{filename}.docx")
-    return f"documents/{filename}.docx"
+    instanse = Documents()
+    template.save(filename)
+    with open(filename, 'rb') as file:
+        instanse.file.save(filename, File(file))
+    return instanse

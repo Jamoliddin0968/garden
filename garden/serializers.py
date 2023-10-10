@@ -346,3 +346,9 @@ class MonthlyGardenSerializers(serializers.Serializer):
     products = ProductSerializer(many=True)
     limit = SingleLimitSerializer()
     limit_items = LimitItemSerializer(many=True)
+
+
+class DocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = "__all__"
+        model = Documents
